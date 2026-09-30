@@ -1,0 +1,1505 @@
+```html
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Coding Mastery - Quiz Game</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        },
+                        cyber: {
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            accent: '#06b6d4'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.8); }
+        }
+        .glow-effect {
+            animation: pulse-glow 3s infinite;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col transition-colors duration-300 antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header / Top Bar -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showScreen('welcome-screen')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid font-mono fa-code"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight leading-none bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+                        AI Coding Quiz
+                    </h1>
+                    <p class="text-xs text-slate-400">35 Soal Pilihan Ganda Interaktif</p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center space-x-2">
+                <button id="sound-btn" onclick="toggleSound()" class="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Mute/Unmute Audio">
+                    <i class="fa-solid fa-volume-high" id="sound-icon"></i>
+                </button>
+                <button onclick="toggleTheme()" class="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition" title="Ganti Tema">
+                    <i class="fa-solid fa-moon" id="theme-icon"></i>
+                </button>
+                <button onclick="showHighScores()" class="p-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-amber-300 transition" title="Papan Skor">
+                    <i class="fa-solid fa-trophy"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center">
+
+        <!-- 1. WELCOME / MODE SELECTION SCREEN -->
+        <section id="welcome-screen" class="space-y-8 py-6">
+            <div class="text-center space-y-4 max-w-2xl mx-auto">
+                <span class="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full">
+                    Media Belajar & Latihan Coding AI
+                </span>
+                <h2 class="text-3xl md:text-5xl font-extrabold tracking-tight text-white">
+                    Uji Pemahaman <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Coding & AI</span> Kamu!
+                </h2>
+                <p class="text-slate-400 text-sm md:text-base leading-relaxed">
+                    Uji pengetahuanmu seputar Python, Machine Learning, Deep Learning, Natural Language Processing, hingga Computer Vision dalam 35 soal pilihan ganda.
+                </p>
+            </div>
+
+            <!-- Quiz Stats Overview Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 text-center">
+                    <div class="text-indigo-400 text-2xl font-bold mb-1">35</div>
+                    <div class="text-xs text-slate-400 uppercase font-semibold">Total Soal</div>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 text-center">
+                    <div class="text-cyan-400 text-2xl font-bold mb-1">4</div>
+                    <div class="text-xs text-slate-400 uppercase font-semibold">Topik AI</div>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 text-center">
+                    <div class="text-emerald-400 text-2xl font-bold mb-1" id="stat-high-score">0</div>
+                    <div class="text-xs text-slate-400 uppercase font-semibold">Skor Tertinggi</div>
+                </div>
+                <div class="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 text-center">
+                    <div class="text-amber-400 text-2xl font-bold mb-1" id="stat-total-completed">0</div>
+                    <div class="text-xs text-slate-400 uppercase font-semibold">Selesai Dikerjakan</div>
+                </div>
+            </div>
+
+            <!-- Game Mode Cards -->
+            <div class="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <!-- Practice Mode -->
+                <div onclick="startQuiz('practice')" class="group relative bg-slate-800 hover:bg-slate-800/80 border border-slate-700 hover:border-indigo-500/50 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Mode Latihan</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                            Tanpa batasan waktu. Penjelasan & pembahasan langsung muncul setelah kamu memilih jawaban.
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-semibold text-indigo-400 group-hover:translate-x-1 transition-transform">
+                        <span>Mulai Latihan</span>
+                        <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Exam Mode -->
+                <div onclick="startQuiz('exam')" class="group relative bg-slate-800 hover:bg-slate-800/80 border border-slate-700 hover:border-cyan-500/50 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-stopwatch"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Mode Simulasi Ujian</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                            Timer 25 menit. Hasil & rekapitulasi nilai beserta pembahasan lengkap ditampilkan di akhir.
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-semibold text-cyan-400 group-hover:translate-x-1 transition-transform">
+                        <span>Mulai Ujian</span>
+                        <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+
+                <!-- Survival Mode -->
+                <div onclick="startQuiz('survival')" class="group relative bg-slate-800 hover:bg-slate-800/80 border border-slate-700 hover:border-rose-500/50 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-rose-500/10 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-heart-crack"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-2">Mode Survival</h3>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-4">
+                            Kamu hanya punya 3 nyawa! Setiap salah menjawab, 1 nyawa berkurang. Berapa soal yang bisa kamu lewati?
+                        </p>
+                    </div>
+                    <div class="flex items-center text-xs font-semibold text-rose-400 group-hover:translate-x-1 transition-transform">
+                        <span>Tantang Diri</span>
+                        <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. QUIZ GAMEPLAY SCREEN -->
+        <section id="quiz-screen" class="hidden space-y-6">
+            <!-- Quiz HUD / Top Bar -->
+            <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+                <!-- Question Progress counter -->
+                <div class="flex items-center space-x-3">
+                    <span id="question-badge" class="px-3 py-1 text-xs font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-lg">
+                        Soal 1 / 35
+                    </span>
+                    <span id="category-badge" class="hidden sm:inline-block px-3 py-1 text-xs font-medium bg-slate-700 text-slate-300 rounded-lg">
+                        Python Basics
+                    </span>
+                </div>
+
+                <!-- Streak & Timer / Lives -->
+                <div class="flex items-center space-x-4">
+                    <!-- Lives (Survival Mode Only) -->
+                    <div id="lives-container" class="hidden items-center space-x-1 text-rose-500 font-bold text-sm">
+                        <i class="fa-solid fa-heart"></i>
+                        <span id="lives-count">3</span>
+                    </div>
+
+                    <!-- Combo Streak -->
+                    <div id="streak-container" class="hidden items-center space-x-1 text-amber-400 font-bold text-sm bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20">
+                        <i class="fa-solid fa-fire text-amber-500 animate-bounce"></i>
+                        <span>Streak x<span id="streak-count">0</span></span>
+                    </div>
+
+                    <!-- Timer (Exam Mode Only) -->
+                    <div id="timer-container" class="hidden items-center space-x-2 text-cyan-400 font-mono font-bold text-sm bg-cyan-500/10 px-3 py-1 rounded-lg border border-cyan-500/20">
+                        <i class="fa-solid fa-clock"></i>
+                        <span id="timer-display">25:00</span>
+                    </div>
+
+                    <!-- Bookmark Question -->
+                    <button id="bookmark-btn" onclick="toggleBookmarkCurrent()" class="p-2 text-slate-400 hover:text-amber-400 transition" title="Tandai soal ini">
+                        <i class="fa-regular fa-bookmark text-lg" id="bookmark-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden border border-slate-700/50">
+                <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-cyan-400 h-2 rounded-full transition-all duration-300 w-0"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl">
+                <!-- Question Text -->
+                <div class="space-y-2">
+                    <h3 id="question-text" class="text-xl md:text-2xl font-semibold text-white leading-relaxed">
+                        Loading question...
+                    </h3>
+                </div>
+
+                <!-- Multiple Choice Options Grid -->
+                <div id="options-container" class="grid gap-3.5">
+                    <!-- Options injected dynamically via JS -->
+                </div>
+
+                <!-- Practice Mode Explanation Box -->
+                <div id="explanation-box" class="hidden p-4 rounded-xl border bg-slate-900/80 transition-all duration-300">
+                    <div class="flex items-center space-x-2 font-bold mb-1" id="explanation-title">
+                        <i id="explanation-icon" class="fa-solid"></i>
+                        <span id="explanation-status">Jawaban Benar!</span>
+                    </div>
+                    <p id="explanation-text" class="text-slate-300 text-sm leading-relaxed">
+                        Pembahasan soal akan muncul di sini.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Navigation Controls & Navigator Grid Trigger -->
+            <div class="flex items-center justify-between gap-4">
+                <button id="btn-prev" onclick="navigateQuestion(-1)" class="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 font-medium text-sm flex items-center space-x-2 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Sebelumnya</span>
+                </button>
+
+                <button onclick="toggleGridModal(true)" class="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 font-medium text-sm flex items-center space-x-2 transition">
+                    <i class="fa-solid fa-th-large"></i>
+                    <span class="hidden sm:inline">Navigasi Soal</span>
+                </button>
+
+                <button id="btn-next" onclick="navigateQuestion(1)" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center space-x-2 transition shadow-lg shadow-indigo-600/30">
+                    <span id="btn-next-text">Berikutnya</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Question Grid Navigation Modal -->
+        <div id="grid-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-list-ol text-indigo-400"></i>
+                        <span>Navigasi Nomor Soal</span>
+                    </h3>
+                    <button onclick="toggleGridModal(false)" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-slate-400">
+                    Klik nomor untuk melompat ke soal tersebut. Warna menandakan status pengerjaan.
+                </p>
+                <div class="flex flex-wrap gap-2 text-xs mb-2">
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-indigo-600 inline-block"></span> <span>Terjawab</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-slate-800 border border-slate-600 inline-block"></span> <span>Belum</span></span>
+                    <span class="flex items-center space-x-1"><span class="w-3 h-3 rounded bg-amber-500 inline-block"></span> <span>Ditandai</span></span>
+                </div>
+                
+                <div id="question-grid" class="grid grid-cols-5 sm:grid-cols-7 gap-2 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                    <!-- Grid items injected dynamically -->
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 flex justify-end">
+                    <button onclick="toggleGridModal(false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. RESULTS & REVIEW SCREEN -->
+        <section id="results-screen" class="hidden space-y-8 py-4">
+            <!-- Score Overview Header -->
+            <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 md:p-8 text-center space-y-6 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl"></div>
+                
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-3xl mb-2">
+                    <i class="fa-solid fa-award" id="result-badge-icon"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-white mb-1" id="result-title">
+                        Hasil Quiz Anda
+                    </h2>
+                    <p class="text-slate-400 text-sm" id="result-subtitle">
+                        Berikut adalah rekapitulasi performa pengerjaan soal AI Coding.
+                    </p>
+                </div>
+
+                <!-- Big Score Gauge -->
+                <div class="flex justify-center items-center my-4">
+                    <div class="relative flex items-center justify-center">
+                        <div class="text-5xl md:text-6xl font-black bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent font-mono" id="result-score">
+                            0%
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics breakdown -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto pt-4 border-t border-slate-700/60 text-sm">
+                    <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                        <div class="text-emerald-400 font-bold text-lg" id="result-correct">0</div>
+                        <div class="text-xs text-slate-400">Jawaban Benar</div>
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                        <div class="text-rose-400 font-bold text-lg" id="result-wrong">0</div>
+                        <div class="text-xs text-slate-400">Jawaban Salah</div>
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                        <div class="text-amber-400 font-bold text-lg" id="result-streak">0</div>
+                        <div class="text-xs text-slate-400">Max Streak</div>
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
+                        <div class="text-cyan-400 font-bold text-lg font-mono" id="result-time">00:00</div>
+                        <div class="text-xs text-slate-400">Waktu Terpakai</div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap justify-center gap-3 pt-2">
+                    <button onclick="restartQuiz()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm flex items-center space-x-2 transition shadow-lg shadow-indigo-600/30">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Coba Lagi</span>
+                    </button>
+                    <button onclick="scrollToReview()" class="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-semibold text-sm flex items-center space-x-2 transition">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Lihat Pembahasan</span>
+                    </button>
+                    <button onclick="showScreen('welcome-screen')" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm flex items-center space-x-2 transition border border-slate-700">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Menu Utama</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detailed Answer Review List -->
+            <div id="review-section" class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-book-open text-indigo-400"></i>
+                        <span>Pembahasan Lengkap 35 Soal</span>
+                    </h3>
+                    <span class="text-xs text-slate-400">Kunci Jawaban & Penjelasan</span>
+                </div>
+
+                <div id="review-list-container" class="space-y-4">
+                    <!-- Review Item template generated in JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- High Score / Leaderboard Modal -->
+        <div id="highscore-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                        <i class="fa-solid fa-trophy text-amber-400"></i>
+                        <span>Papan Skor & Catatan Rekor</span>
+                    </h3>
+                    <button onclick="toggleModal('highscore-modal', false)" class="text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <div id="highscore-list" class="space-y-3 py-2 max-h-60 overflow-y-auto custom-scrollbar">
+                    <!-- Scores list -->
+                </div>
+
+                <div class="pt-2 border-t border-slate-800 flex justify-between items-center">
+                    <button onclick="clearHighScores()" class="text-xs text-rose-400 hover:underline">
+                        Hapus Rekor
+                    </button>
+                    <button onclick="toggleModal('highscore-modal', false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm font-medium">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+        <p>AI Coding Quiz App &bull; Powered by HTML5, Tailwind CSS & JS</p>
+    </footer>
+
+    <script>
+        // Complete 35 Questions Dataset with Categories and Explanations
+        const questionsData = [
+            {
+                id: 1,
+                question: "Apa kepanjangan dari \"AI\"?",
+                options: [
+                    "Automatic Interface",
+                    "Artificial Intelligence",
+                    "Applied Information",
+                    "Algorithm Input"
+                ],
+                answer: 1,
+                category: "Konsep Dasar AI",
+                explanation: "AI singkatan dari Artificial Intelligence (Kecerdasan Buatan), yaitu bidang ilmu komputer yang bertujuan membuat sistem mampu meniru kecerdasan manusia."
+            },
+            {
+                id: 2,
+                question: "Bahasa pemrograman yang paling populer untuk Coding AI adalah...",
+                options: [
+                    "Java",
+                    "C++",
+                    "Python",
+                    "HTML"
+                ],
+                answer: 2,
+                category: "Bahasa Pemrograman",
+                explanation: "Python adalah bahasa paling populer untuk AI karena sintaksnya yang simpel serta ekosistem library AI/ML yang sangat kaya seperti TensorFlow, PyTorch, dan Scikit-Learn."
+            },
+            {
+                id: 3,
+                question: "Library Python yang sering digunakan untuk Machine Learning adalah...",
+                options: [
+                    "pygame",
+                    "scikit-learn",
+                    "tkinter",
+                    "flask"
+                ],
+                answer: 1,
+                category: "Library Python",
+                explanation: "scikit-learn adalah library Python paling populer untuk algoritma Machine Learning tradisional seperti regresi, klasifikasi, clustering, dan preprocessing data."
+            },
+            {
+                id: 4,
+                question: "Fungsi utama dari \"data training\" dalam AI adalah...",
+                options: [
+                    "Menghapus virus",
+                    "Melatih model agar bisa belajar dari contoh",
+                    "Membuat tampilan website",
+                    "Menyimpan password"
+                ],
+                answer: 1,
+                category: "Machine Learning",
+                explanation: "Data training digunakan oleh algoritma Machine Learning untuk mempelajari pola, aturan, atau relasi sehingga model bisa membuat prediksi pada data baru."
+            },
+            {
+                id: 5,
+                question: "Apa nama model AI yang bisa membuat teks seperti ChatGPT?",
+                options: [
+                    "CNN",
+                    "LLM - Large Language Model",
+                    "GPS",
+                    "URL"
+                ],
+                answer: 1,
+                category: "Generative AI",
+                explanation: "LLM (Large Language Model) adalah jenis model deep learning berbasis arsitektur Transformer yang dilatih dengan teks dalam jumlah sangat besar untuk memahami dan menghasilkan bahasa alami."
+            },
+            {
+                id: 6,
+                question: "Perintah `import tensorflow` digunakan untuk...",
+                options: [
+                    "Membuat game",
+                    "Mengolah data dan membuat model Deep Learning",
+                    "Mengirim email",
+                    "Edit foto"
+                ],
+                answer: 1,
+                category: "Deep Learning",
+                explanation: "TensorFlow adalah platform open-source buatan Google yang digunakan untuk membangun, melatih, dan mengimplementasikan model Deep Learning & Neural Networks."
+            },
+            {
+                id: 7,
+                question: "\"Overfitting\" pada model AI artinya...",
+                options: [
+                    "Model terlalu bagus di data training tapi jelek di data baru",
+                    "Model tidak bisa jalan",
+                    "Data terlalu sedikit",
+                    "Komputer kehabisan baterai"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "Overfitting terjadi ketika model terlalu menghafal detail dan noise pada data training, sehingga gagal melakukan generalisasi dengan baik pada data uji/baru."
+            },
+            {
+                id: 8,
+                question: "Jenis AI yang bisa mengenali gambar kucing adalah...",
+                options: [
+                    "NLP",
+                    "Computer Vision",
+                    "Robotics",
+                    "Database"
+                ],
+                answer: 1,
+                category: "Computer Vision",
+                explanation: "Computer Vision adalah cabang AI yang memungkinkan komputer memperoleh pemahaman tingkat tinggi dari gambar digital atau video, seperti pengenalan objek."
+            },
+            {
+                id: 9,
+                question: "Singkatan \"NLP\" dalam AI adalah...",
+                options: [
+                    "New Language Programming",
+                    "Natural Language Processing",
+                    "Network Link Protocol",
+                    "Number Logic Process"
+                ],
+                answer: 1,
+                category: "NLP",
+                explanation: "NLP singkatan dari Natural Language Processing (Pemrosesan Bahasa Alami), cabang AI yang berfokus pada interaksi antara komputer dan bahasa manusia."
+            },
+            {
+                id: 10,
+                question: "Apa fungsi `print()` dalam Python?",
+                options: [
+                    "Menghapus data",
+                    "Menampilkan output di layar",
+                    "Membuat loop",
+                    "Komentar"
+                ],
+                answer: 1,
+                category: "Python Basics",
+                explanation: "Fungsi bawaan `print()` di Python digunakan untuk mencetak pesan, nilai variabel, atau teks ke terminal/konsol output."
+            },
+            {
+                id: 11,
+                question: "Dataset adalah...",
+                options: [
+                    "Kumpulan data yang digunakan untuk melatih AI",
+                    "Nama software",
+                    "Jenis virus",
+                    "Perangkat keras"
+                ],
+                answer: 0,
+                category: "Konsep Dasar AI",
+                explanation: "Dataset merupakan kumpulan data yang terstruktur (seperti tabel, gambar, teks) yang disiapkan untuk analisis atau melatih model Machine Learning."
+            },
+            {
+                id: 12,
+                question: "Perintah untuk membuat komentar di Python adalah...",
+                options: [
+                    "//",
+                    "/* */",
+                    "#",
+                    "<!-- -->"
+                ],
+                answer: 2,
+                category: "Python Basics",
+                explanation: "Dalam Python, karakter tanda pagar (`#`) digunakan untuk menulis komentar satu baris yang diabaikan saat program dijalankan."
+            },
+            {
+                id: 13,
+                question: "Apa kepanjangan \"CNN\" dalam Computer Vision?",
+                options: [
+                    "Computer Neural Network",
+                    "Convolutional Neural Network",
+                    "Central Network Node",
+                    "Code Name Number"
+                ],
+                answer: 1,
+                category: "Computer Vision",
+                explanation: "CNN singkatan dari Convolutional Neural Network, arsitektur deep learning yang khusus dirancang untuk memproses data berstruktur grid seperti gambar."
+            },
+            {
+                id: 14,
+                question: "Algoritma yang digunakan untuk klasifikasi data sederhana adalah...",
+                options: [
+                    "K-Nearest Neighbors",
+                    "Microsoft Word",
+                    "Google Chrome",
+                    "Paint"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "K-Nearest Neighbors (KNN) adalah algoritma supervised learning sederhana yang mengklasifikasikan data berdasarkan kedekatan jarak dengan tetangga terdekatnya."
+            },
+            {
+                id: 15,
+                question: "Fungsi `model.fit()` dalam scikit-learn untuk apa?",
+                options: [
+                    "Menguji model",
+                    "Melatih model dengan data training",
+                    "Menghapus model",
+                    "Menyimpan gambar"
+                ],
+                answer: 1,
+                category: "Library Python",
+                explanation: "Metode `.fit(X, y)` pada scikit-learn digunakan untuk proses 'training' atau mencocokkan model matematika dengan data latih."
+            },
+            {
+                id: 16,
+                question: "Apa itu \"Bias\" dalam AI?",
+                options: [
+                    "Kesalahan karena model terlalu sederhana",
+                    "Warna di layar",
+                    "Kecepatan internet",
+                    "Nama variabel"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "Bias dalam AI mengacu pada asumsi atau penyederhanaan yang dibuat oleh model. Bias yang terlalu tinggi menyebabkan underfitting (model kurang fleksibel)."
+            },
+            {
+                id: 17,
+                question: "Library untuk mengolah data tabel di Python adalah...",
+                options: [
+                    "numpy",
+                    "pandas",
+                    "matplotlib",
+                    "os"
+                ],
+                answer: 1,
+                category: "Library Python",
+                explanation: "Pandas adalah library utama di Python untuk manipulasi dan analisis data terstruktur berbentuk tabel (DataFrame) atau deret (Series)."
+            },
+            {
+                id: 18,
+                question: "Tujuan \"Validasi\" pada model AI adalah...",
+                options: [
+                    "Mengecek performa model di data yang belum dilihat",
+                    "Menghapus data",
+                    "Membuat password",
+                    "Install aplikasi"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "Proses validasi dilakukan untuk mengevaluasi kemampuan generalisasi model dan menyetel parameter hiper agar model tidak overfitting pada data training."
+            },
+            {
+                id: 19,
+                question: "Apa itu \"Neuron\" dalam Neural Network?",
+                options: [
+                    "Unit dasar yang memproses informasi",
+                    "Nama kabel",
+                    "Jenis virus",
+                    "Tombol keyboard"
+                ],
+                answer: 0,
+                category: "Deep Learning",
+                explanation: "Neuron (atau Node) adalah unit pemrosesan dasar dalam jaringan saraf tiruan yang menerima input, melakukan kalkulasi berbobot, dan menghasilkan output."
+            },
+            {
+                id: 20,
+                question: "Perintah Python untuk membuat list adalah...",
+                options: [
+                    "list = ()",
+                    "list = {}",
+                    "list = []",
+                    "list = <>"
+                ],
+                answer: 2,
+                category: "Python Basics",
+                explanation: "List di Python dibuat menggunakan kurung siku `[]`. Kurung biasa `()` untuk Tuple dan kurung kurawal `{}` untuk Dictionary atau Set."
+            },
+            {
+                id: 21,
+                question: "AI yang digunakan untuk chatbot disebut...",
+                options: [
+                    "Computer Vision",
+                    "NLP",
+                    "Data Mining",
+                    "Cloud Computing"
+                ],
+                answer: 1,
+                category: "NLP",
+                explanation: "Chatbot membutuhkan Natural Language Processing (NLP) untuk memahami intent pengguna, mengurai pertanyaan, serta menghasilkan respon teks yang relevan."
+            },
+            {
+                id: 22,
+                question: "Apa fungsi \"loss function\" dalam training AI?",
+                options: [
+                    "Mengukur seberapa salah prediksi model",
+                    "Menyimpan file",
+                    "Mengganti wallpaper",
+                    "Membuka browser"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "Loss function (fungsi kerugian) mengukur selisih antara hasil prediksi model dengan target asli. Nilai ini digunakan oleh optimasi untuk memperbarui bobot model."
+            },
+            {
+                id: 23,
+                question: "Ekstensi file untuk notebook Python adalah...",
+                options: [
+                    ".docx",
+                    ".py",
+                    ".ipynb",
+                    ".pdf"
+                ],
+                answer: 2,
+                category: "Python Basics",
+                explanation: "File Jupyter Notebook atau Google Colab menggunakan ekstensi `.ipynb` (IPython Notebook), sedangkan script standar Python menggunakan ekstensi `.py`."
+            },
+            {
+                id: 24,
+                question: "\"Supervised Learning\" artinya...",
+                options: [
+                    "Belajar tanpa label data",
+                    "Belajar dengan data yang sudah ada label/jawabannya",
+                    "Belajar sambil tidur",
+                    "Belajar dari internet"
+                ],
+                answer: 1,
+                category: "Machine Learning",
+                explanation: "Supervised Learning adalah metode pembelajaran terbimbing di mana algoritma dilatih menggunakan pasangan input dan label target yang sudah diketahui."
+            },
+            {
+                id: 25,
+                question: "Fungsi `split()` pada data digunakan untuk...",
+                options: [
+                    "Membagi data jadi data training dan data testing",
+                    "Menghapus data",
+                    "Menyalin file",
+                    "Mengirim data"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "Fungsi pemisahan (seperti `train_test_split` di scikit-learn) membagi kumpulan data menjadi bagian porsi training dan porsi testing agar evaluasi obyektif."
+            },
+            {
+                id: 26,
+                question: "Apa itu \"Prompt\" dalam AI generatif?",
+                options: [
+                    "Perintah/teks yang diberikan ke AI",
+                    "Nama folder",
+                    "Jenis virus",
+                    "Kabel data"
+                ],
+                answer: 0,
+                category: "Generative AI",
+                explanation: "Prompt adalah instruksi berupa kalimat teks atau pertanyaan yang dimasukkan pengguna ke model AI Generatif (seperti ChatGPT atau Midjourney) untuk menghasilkan respon tertentu."
+            },
+            {
+                id: 27,
+                question: "Library untuk membuat grafik di Python adalah...",
+                options: [
+                    "pandas",
+                    "matplotlib",
+                    "scikit-learn",
+                    "random"
+                ],
+                answer: 1,
+                category: "Library Python",
+                explanation: "Matplotlib adalah library paling dasar dan komprehensif di Python untuk membuat visualisasi data seperti diagram batang, grafik garis, scatter plot, dan histogram."
+            },
+            {
+                id: 28,
+                question: "\"Unsupervised Learning\" contohnya adalah...",
+                options: [
+                    "Clustering",
+                    "Menghitung 1+1",
+                    "Mengetik di Word",
+                    "Buka YouTube"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "Clustering (pengelompokan data) adalah teknik Unsupervised Learning untuk menemukan kelompok alami dalam data tanpa memerlukan label jawaban terlebih dahulu."
+            },
+            {
+                id: 29,
+                question: "Perintah untuk mengulang kode 10 kali di Python adalah...",
+                options: [
+                    "if",
+                    "for i in range(10):",
+                    "print",
+                    "import"
+                ],
+                answer: 1,
+                category: "Python Basics",
+                explanation: "Perulangan `for i in range(10):` akan menjalankan blok kode di dalamnya sebanyak 10 kali berturut-turut (dengan indeks i dari 0 hingga 9)."
+            },
+            {
+                id: 30,
+                question: "Apa kepanjangan \"GPU\" yang penting untuk training AI?",
+                options: [
+                    "General Processing Unit",
+                    "Graphics Processing Unit",
+                    "Game Playing Utility",
+                    "Global Program Update"
+                ],
+                answer: 1,
+                category: "Hardware AI",
+                explanation: "GPU singkatan dari Graphics Processing Unit. GPU memiliki ribuan core paralel yang sangat cepat untuk menangani operasi matriks matematika pada training AI."
+            },
+            {
+                id: 31,
+                question: "Tujuan \"Data Cleaning\" adalah...",
+                options: [
+                    "Membersihkan data dari yang kosong/salah sebelum dipakai",
+                    "Menghapus komputer",
+                    "Mengganti tema",
+                    "Download file"
+                ],
+                answer: 0,
+                category: "Machine Learning",
+                explanation: "Data Cleaning adalah tahap krusial untuk menangani nilai hilang (missing values), duplikat, serta data yang salah agar kualitas training AI tetap optimal."
+            },
+            {
+                id: 32,
+                question: "Model AI yang bisa membuat gambar dari teks disebut...",
+                options: [
+                    "LLM",
+                    "Generative AI / Text-to-Image",
+                    "Database",
+                    "Spreadsheet"
+                ],
+                answer: 1,
+                category: "Generative AI",
+                explanation: "Model Generative AI kategori Text-to-Image (seperti Stable Diffusion, DALL-E, Midjourney) dapat memproses pemahaman perintah teks dan menghasilkan gambar visual."
+            },
+            {
+                id: 33,
+                question: "Perintah `if x > 5:` adalah contoh...",
+                options: [
+                    "Loop",
+                    "Percabangan / Kondisi",
+                    "Fungsi",
+                    "Komentar"
+                ],
+                answer: 1,
+                category: "Python Basics",
+                explanation: "Pernyataan `if` merupakan struktur kontrol kondisional (percabangan) untuk mengeksekusi kode hanya ketika kondisi logis bernilai `True`."
+            },
+            {
+                id: 34,
+                question: "Apa itu \"API\" dalam coding?",
+                options: [
+                    "Cara program berkomunikasi dengan program lain",
+                    "Nama makanan",
+                    "Jenis monitor",
+                    "Sistem operasi"
+                ],
+                answer: 0,
+                category: "Konsep Dasar AI",
+                explanation: "API singkatan dari Application Programming Interface, antarmuka standar yang memungkinkan dua aplikasi atau perangkat lunak saling bertukar data dan layanan."
+            },
+            {
+                id: 35,
+                question: "Langkah pertama sebelum membuat model AI adalah...",
+                options: [
+                    "Langsung coding",
+                    "Mengumpulkan dan memahami data",
+                    "Main game",
+                    "Nonton video"
+                ],
+                answer: 1,
+                category: "Machine Learning",
+                explanation: "Tahap awal terpenting dalam workflow AI adalah pengumpulan data (Data Collection) dan pemahaman masalah serta eksplorasi data (EDA) sebelum mulai membangun algoritma."
+            }
+        ];
+
+        // State Management Variables
+        let currentMode = 'practice'; // 'practice', 'exam', 'survival'
+        let currentQuestionIdx = 0;
+        let userAnswers = new Array(questionsData.length).fill(null);
+        let bookmarkedQuestions = new Set();
+        let lives = 3;
+        let currentStreak = 0;
+        let maxStreak = 0;
+        let soundEnabled = true;
+        let timerInterval = null;
+        let timeElapsedSeconds = 0;
+        const totalExamTimeSeconds = 25 * 60; // 25 minutes
+        let isDarkMode = true;
+
+        // Web Audio Synthesizer for sound effects
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                    osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now); // A3
+                    osc.frequency.exponentialRampToValueAtTime(146.83, now + 0.2); // D3
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'click') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, now);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'finish') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.15);
+                    osc.frequency.setValueAtTime(783.99, now + 0.3);
+                    osc.frequency.setValueAtTime(1046.50, now + 0.45);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                    osc.start(now);
+                    osc.stop(now + 0.8);
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        // DOM Ready Initializations
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStatsFromStorage();
+            updateWelcomeStats();
+        });
+
+        function showScreen(screenId) {
+            playSound('click');
+            ['welcome-screen', 'quiz-screen', 'results-screen'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (isDarkMode) {
+                html.classList.add('dark');
+                icon.className = 'fa-solid fa-moon';
+            } else {
+                html.classList.remove('dark');
+                icon.className = 'fa-solid fa-sun';
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+        }
+
+        // Quiz Initialization
+        function startQuiz(mode) {
+            currentMode = mode;
+            currentQuestionIdx = 0;
+            userAnswers = new Array(questionsData.length).fill(null);
+            bookmarkedQuestions.clear();
+            lives = 3;
+            currentStreak = 0;
+            maxStreak = 0;
+            timeElapsedSeconds = 0;
+
+            // Configure Mode HUD
+            const timerContainer = document.getElementById('timer-container');
+            const livesContainer = document.getElementById('lives-container');
+            const streakContainer = document.getElementById('streak-container');
+
+            timerContainer.classList.add('hidden');
+            livesContainer.classList.add('hidden');
+            streakContainer.classList.remove('hidden');
+
+            if (mode === 'exam') {
+                timerContainer.classList.remove('hidden');
+                startTimer();
+            } else if (mode === 'survival') {
+                livesContainer.classList.remove('hidden');
+                document.getElementById('lives-count').innerText = lives;
+            }
+
+            updateStreakDisplay();
+            showScreen('quiz-screen');
+            renderQuestion();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            let timeRemaining = totalExamTimeSeconds;
+            
+            const timerDisplay = document.getElementById('timer-display');
+            
+            timerInterval = setInterval(() => {
+                timeElapsedSeconds++;
+                timeRemaining--;
+
+                const mins = Math.floor(timeRemaining / 60);
+                const secs = timeRemaining % 60;
+                timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    finishQuiz();
+                }
+            }, 1000);
+        }
+
+        // Question Rendering
+        function renderQuestion() {
+            const q = questionsData[currentQuestionIdx];
+
+            // Badge updates
+            document.getElementById('question-badge').innerText = `Soal ${currentQuestionIdx + 1} / ${questionsData.length}`;
+            document.getElementById('category-badge').innerText = q.category;
+
+            // Progress bar
+            const progressPercent = ((currentQuestionIdx + 1) / questionsData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            // Question Text
+            document.getElementById('question-text').innerText = `${q.id}. ${q.question}`;
+
+            // Bookmark icon status
+            updateBookmarkIcon();
+
+            // Options rendering
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+            const userAns = userAnswers[currentQuestionIdx];
+
+            q.options.forEach((opt, idx) => {
+                const optBtn = document.createElement('button');
+                optBtn.className = `w-full text-left p-4 rounded-xl border flex items-center space-x-3 transition-all duration-200 group text-sm md:text-base `;
+
+                let borderStyle = 'border-slate-700 bg-slate-900/60 hover:bg-slate-700/60 hover:border-indigo-500/50';
+                let letterStyle = 'bg-slate-800 text-slate-300 border-slate-700 group-hover:bg-indigo-600 group-hover:text-white';
+
+                // Check selected or practice mode state
+                if (userAns !== null) {
+                    if (currentMode === 'practice') {
+                        if (idx === q.answer) {
+                            borderStyle = 'border-emerald-500 bg-emerald-500/10 text-emerald-300 font-semibold';
+                            letterStyle = 'bg-emerald-500 text-white border-emerald-400';
+                        } else if (idx === userAns && userAns !== q.answer) {
+                            borderStyle = 'border-rose-500 bg-rose-500/10 text-rose-300 font-semibold';
+                            letterStyle = 'bg-rose-500 text-white border-rose-400';
+                        } else {
+                            borderStyle = 'border-slate-800 bg-slate-900/40 opacity-50';
+                        }
+                    } else {
+                        // Exam or Survival mode selected state
+                        if (idx === userAns) {
+                            borderStyle = 'border-indigo-500 bg-indigo-500/20 text-white font-semibold shadow-lg shadow-indigo-500/10';
+                            letterStyle = 'bg-indigo-600 text-white border-indigo-400';
+                        }
+                    }
+                }
+
+                optBtn.className += borderStyle;
+
+                optBtn.innerHTML = `
+                    <span class="w-8 h-8 rounded-lg border text-xs font-bold flex items-center justify-center shrink-0 transition-colors ${letterStyle}">
+                        ${letters[idx]}
+                    </span>
+                    <span class="flex-1 leading-snug">${opt}</span>
+                    ${userAns !== null && currentMode === 'practice' && idx === q.answer ? '<i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>' : ''}
+                    ${userAns !== null && currentMode === 'practice' && idx === userAns && userAns !== q.answer ? '<i class="fa-solid fa-circle-xmark text-rose-400 text-lg"></i>' : ''}
+                `;
+
+                optBtn.onclick = () => selectOption(idx);
+                container.appendChild(optBtn);
+            });
+
+            // Handle Practice Mode Explanation Box
+            const explanationBox = document.getElementById('explanation-box');
+            if (currentMode === 'practice' && userAns !== null) {
+                explanationBox.classList.remove('hidden');
+                const isCorrect = userAns === q.answer;
+
+                const statusEl = document.getElementById('explanation-status');
+                const iconEl = document.getElementById('explanation-icon');
+                const textEl = document.getElementById('explanation-text');
+
+                if (isCorrect) {
+                    explanationBox.className = 'p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-emerald-300';
+                    statusEl.innerText = "Jawaban Benar!";
+                    iconEl.className = "fa-solid fa-circle-check text-emerald-400";
+                } else {
+                    explanationBox.className = 'p-4 rounded-xl border border-rose-500/30 bg-rose-950/20 text-rose-300';
+                    statusEl.innerText = `Jawaban Kurang Tepat! Kunci: (${letters[q.answer]})`;
+                    iconEl.className = "fa-solid fa-circle-xmark text-rose-400";
+                }
+                textEl.innerText = q.explanation;
+            } else {
+                explanationBox.classList.add('hidden');
+            }
+
+            // Update Navigation Buttons
+            document.getElementById('btn-prev').disabled = currentQuestionIdx === 0;
+
+            const btnNextText = document.getElementById('btn-next-text');
+            if (currentQuestionIdx === questionsData.length - 1) {
+                btnNextText.innerText = "Selesai Quiz";
+            } else {
+                btnNextText.innerText = "Berikutnya";
+            }
+        }
+
+        function selectOption(idx) {
+            if (userAnswers[currentQuestionIdx] !== null && currentMode === 'practice') {
+                return; // Prevent changing in practice mode once answered
+            }
+
+            const q = questionsData[currentQuestionIdx];
+            const isCorrect = idx === q.answer;
+
+            userAnswers[currentQuestionIdx] = idx;
+
+            if (isCorrect) {
+                playSound('correct');
+                currentStreak++;
+                if (currentStreak > maxStreak) maxStreak = currentStreak;
+            } else {
+                playSound('wrong');
+                currentStreak = 0;
+
+                if (currentMode === 'survival') {
+                    lives--;
+                    document.getElementById('lives-count').innerText = lives;
+                    if (lives <= 0) {
+                        setTimeout(() => {
+                            finishQuiz();
+                        }, 500);
+                        return;
+                    }
+                }
+            }
+
+            updateStreakDisplay();
+            renderQuestion();
+        }
+
+        function updateStreakDisplay() {
+            document.getElementById('streak-count').innerText = currentStreak;
+            const container = document.getElementById('streak-container');
+            if (currentStreak >= 2) {
+                container.classList.remove('hidden');
+            } else if (currentMode !== 'practice') {
+                container.classList.add('hidden');
+            }
+        }
+
+        function navigateQuestion(dir) {
+            playSound('click');
+            const targetIdx = currentQuestionIdx + dir;
+
+            if (targetIdx >= questionsData.length) {
+                finishQuiz();
+                return;
+            }
+
+            if (targetIdx >= 0 && targetIdx < questionsData.length) {
+                currentQuestionIdx = targetIdx;
+                renderQuestion();
+            }
+        }
+
+        function toggleBookmarkCurrent() {
+            playSound('click');
+            if (bookmarkedQuestions.has(currentQuestionIdx)) {
+                bookmarkedQuestions.delete(currentQuestionIdx);
+            } else {
+                bookmarkedQuestions.add(currentQuestionIdx);
+            }
+            updateBookmarkIcon();
+        }
+
+        function updateBookmarkIcon() {
+            const icon = document.getElementById('bookmark-icon');
+            const btn = document.getElementById('bookmark-btn');
+            if (bookmarkedQuestions.has(currentQuestionIdx)) {
+                icon.className = "fa-solid fa-bookmark text-amber-400";
+                btn.title = "Hapus tanda soal";
+            } else {
+                icon.className = "fa-regular fa-bookmark text-slate-400";
+                btn.title = "Tandai soal ini";
+            }
+        }
+
+        function toggleGridModal(show) {
+            playSound('click');
+            const modal = document.getElementById('grid-modal');
+            if (show) {
+                renderGridItems();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderGridItems() {
+            const grid = document.getElementById('question-grid');
+            grid.innerHTML = '';
+
+            questionsData.forEach((_, idx) => {
+                const item = document.createElement('button');
+                item.className = 'w-10 h-10 rounded-lg text-xs font-bold transition flex items-center justify-center relative ';
+
+                const isAnswered = userAnswers[idx] !== null;
+                const isBookmarked = bookmarkedQuestions.has(idx);
+                const isCurrent = idx === currentQuestionIdx;
+
+                if (isCurrent) {
+                    item.className += 'ring-2 ring-indigo-400 ring-offset-2 ring-offset-slate-900 ';
+                }
+
+                if (isBookmarked) {
+                    item.className += 'bg-amber-500 text-slate-950 font-extrabold ';
+                } else if (isAnswered) {
+                    item.className += 'bg-indigo-600 text-white ';
+                } else {
+                    item.className += 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 ';
+                }
+
+                item.innerText = idx + 1;
+                item.onclick = () => {
+                    currentQuestionIdx = idx;
+                    toggleGridModal(false);
+                    renderQuestion();
+                };
+                grid.appendChild(item);
+            });
+        }
+
+        function finishQuiz() {
+            clearInterval(timerInterval);
+            playSound('finish');
+
+            // Calculate results
+            let correctCount = 0;
+            userAnswers.forEach((ans, idx) => {
+                if (ans === questionsData[idx].answer) {
+                    correctCount++;
+                }
+            });
+
+            const wrongCount = userAnswers.filter((ans, i) => ans !== null && ans !== questionsData[i].answer).length;
+            const percentage = Math.round((correctCount / questionsData.length) * 100);
+
+            // Trigger Confetti for high score
+            if (percentage >= 70) {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            // Update Score Screen
+            document.getElementById('result-score').innerText = `${percentage}%`;
+            document.getElementById('result-correct').innerText = correctCount;
+            document.getElementById('result-wrong').innerText = wrongCount;
+            document.getElementById('result-streak').innerText = `${maxStreak}x`;
+
+            const mins = Math.floor(timeElapsedSeconds / 60);
+            const secs = timeElapsedSeconds % 60;
+            document.getElementById('result-time').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            // Title and badge icon based on score
+            const titleEl = document.getElementById('result-title');
+            const badgeIcon = document.getElementById('result-badge-icon');
+
+            if (percentage === 100) {
+                titleEl.innerText = "Sempurna! AI Master! 🏆";
+                badgeIcon.className = "fa-solid fa-crown text-amber-400";
+            } else if (percentage >= 80) {
+                titleEl.innerText = "Luar Biasa! Pemahaman AI Sangat Tinggi! 🔥";
+                badgeIcon.className = "fa-solid fa-medal text-cyan-400";
+            } else if (percentage >= 60) {
+                titleEl.innerText = "Bagus! Teruskan Latihan Coding AI! 👍";
+                badgeIcon.className = "fa-solid fa-award text-indigo-400";
+            } else {
+                titleEl.innerText = "Jangan Patah Semangat! Pelajari Pembahasannya 📚";
+                badgeIcon.className = "fa-solid fa-book-open text-rose-400";
+            }
+
+            saveScoreToStorage(percentage, correctCount);
+            renderReviewList();
+            showScreen('results-screen');
+        }
+
+        function restartQuiz() {
+            startQuiz(currentMode);
+        }
+
+        function scrollToReview() {
+            document.getElementById('review-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderReviewList() {
+            const container = document.getElementById('review-list-container');
+            container.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+
+            questionsData.forEach((q, idx) => {
+                const userAns = userAnswers[idx];
+                const isCorrect = userAns === q.answer;
+
+                const card = document.createElement('div');
+                card.className = `p-5 rounded-xl border bg-slate-800/80 space-y-3 ${
+                    userAns === null ? 'border-slate-700' :
+                    isCorrect ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-rose-500/40 bg-rose-950/10'
+                }`;
+
+                let statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-700 text-slate-300">Belum Dijawab</span>`;
+                if (userAns !== null) {
+                    if (isCorrect) {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"><i class="fa-solid fa-check mr-1"></i> Benar</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30"><i class="fa-solid fa-xmark mr-1"></i> Salah</span>`;
+                    }
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <h4 class="font-semibold text-white text-base leading-snug">
+                            ${q.id}. ${q.question}
+                        </h4>
+                        ${statusBadge}
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+                        ${q.options.map((opt, oIdx) => {
+                            let optClass = 'bg-slate-900/60 border-slate-700 text-slate-300';
+                            if (oIdx === q.answer) {
+                                optClass = 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 font-bold';
+                            } else if (oIdx === userAns && !isCorrect) {
+                                optClass = 'bg-rose-500/20 border-rose-500/50 text-rose-300 line-through';
+                            }
+                            return `
+                                <div class="p-2.5 rounded-lg border flex items-center space-x-2 ${optClass}">
+                                    <span class="font-bold uppercase">${letters[oIdx]}.</span>
+                                    <span>${opt}</span>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    <div class="p-3 bg-slate-900/80 rounded-lg border border-slate-700/60 text-xs text-slate-300 space-y-1">
+                        <div class="font-bold text-indigo-400 flex items-center space-x-1">
+                            <i class="fa-solid fa-lightbulb"></i>
+                            <span>Pembahasan Kunci Jawaban:</span>
+                        </div>
+                        <p class="leading-relaxed text-slate-300">${q.explanation}</p>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function saveScoreToStorage(score, correctCount) {
+            try {
+                let history = JSON.parse(localStorage.getItem('ai_quiz_scores') || '[]');
+                history.push({
+                    date: new Date().toLocaleDateString('id-ID', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+                    score: score,
+                    correct: correctCount,
+                    mode: currentMode
+                });
+                history.sort((a, b) => b.score - a.score);
+                history = history.slice(0, 10); // keep top 10
+                localStorage.setItem('ai_quiz_scores', JSON.stringify(history));
+                
+                // Total completed counter
+                let completed = parseInt(localStorage.getItem('ai_quiz_completed') || '0') + 1;
+                localStorage.setItem('ai_quiz_completed', completed.toString());
+
+                updateWelcomeStats();
+            } catch (e) {
+                console.log("LocalStorage save error", e);
+            }
+        }
+
+        function loadStatsFromStorage() {
+            updateWelcomeStats();
+        }
+
+        function updateWelcomeStats() {
+            try {
+                const history = JSON.parse(localStorage.getItem('ai_quiz_scores') || '[]');
+                const highest = history.length > 0 ? history[0].score : 0;
+                const totalCompleted = localStorage.getItem('ai_quiz_completed') || '0';
+
+                document.getElementById('stat-high-score').innerText = `${highest}%`;
+                document.getElementById('stat-total-completed').innerText = totalCompleted;
+            } catch (e) {
+                console.log("LocalStorage load error", e);
+            }
+        }
+
+        function showHighScores() {
+            playSound('click');
+            const listContainer = document.getElementById('highscore-list');
+            listContainer.innerHTML = '';
+
+            try {
+                const history = JSON.parse(localStorage.getItem('ai_quiz_scores') || '[]');
+                if (history.length === 0) {
+                    listContainer.innerHTML = `<p class="text-xs text-center text-slate-400 py-6">Belum ada rekor tersimpan. Ayo selesaikan quiz pertama kamu!</p>`;
+                } else {
+                    history.forEach((item, idx) => {
+                        const row = document.createElement('div');
+                        row.className = 'flex items-center justify-between p-3 rounded-xl bg-slate-800 border border-slate-700/60 text-xs';
+                        row.innerHTML = `
+                            <div class="flex items-center space-x-3">
+                                <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center">${idx + 1}</span>
+                                <div>
+                                    <div class="font-bold text-white">${item.score}% Skor (${item.correct}/35 Soal)</div>
+                                    <div class="text-slate-400 text-[10px] uppercase">${item.mode} Mode &bull; ${item.date}</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-award text-amber-400 text-base"></i>
+                        `;
+                        listContainer.appendChild(row);
+                    });
+                }
+            } catch (e) {
+                listContainer.innerHTML = `<p class="text-xs text-rose-400">Gagal memuat rekor.</p>`;
+            }
+
+            toggleModal('highscore-modal', true);
+        }
+
+        function clearHighScores() {
+            playSound('click');
+            localStorage.removeItem('ai_quiz_scores');
+            localStorage.removeItem('ai_quiz_completed');
+            updateWelcomeStats();
+            showHighScores();
+        }
+
+        function toggleModal(id, show) {
+            const modal = document.getElementById(id);
+            if (show) modal.classList.remove('hidden');
+            else modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+```
